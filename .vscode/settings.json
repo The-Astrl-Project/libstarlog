@@ -1,4 +1,4 @@
 {
   "cSpell.words": ["Astrl", "Globber", "libstarlog", "Starlog"],
-  "cSpell.enableFiletypes": ["editorconfig", "shellscript"]
+  "cSpell.enableFiletypes": ["editorconfig", "meson", "shellscript"]
 }
