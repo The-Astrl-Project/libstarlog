@@ -19,15 +19,12 @@
 // ----------------------------------------------------------------
 
 // Macro Definitions
-#define LSL_BACKEND_FILE 1
-#define LSL_BACKEND_SOCKET 2
-#define LSL_BACKEND_CONSOLE 3
 
 // File Docstring
 // --------------------------------
 // libStarlog || src/logging.c <-> include/logging.h
 //
-// Provides the logging utility for libStarlog.
+// A feature rich logging utility.
 //
 // @author @MaxineToTheStars <https://github.com/MaxineToTheStars>
 // ----------------------------------------------------------------
@@ -37,6 +34,13 @@
 // Enum Definitions
 
 // Type Definitions
+/* Available logging backends supported by libStarlog */
+typedef enum STARLOG_BACKEND
+{
+    STARLOG_BACKEND_FILE = 1,
+    STARLOG_BACKEND_SOCKET = 2,
+    STARLOG_BACKEND_CONSOLE = 3,
+};
 
 // Variable Definitions
 
@@ -48,36 +52,18 @@
  * backends of the same type results in ``EXIT_FAILURE``.
  *
  * @param backend_type The backend type to instance
- * @param output_filepath The /path/to/filename of the output file
- * @param input_filepath The /path/to/filename of the input file
- * @see ``include/logging.h - LSL_BACKEND_XXX`` for the available backends
+ * @param filepath The filepath of the output file
+ * @param socket_path The filepath of the socket
  * @return ``EXIT_SUCCESS`` or ``EXIT_FAILURE``
  */
-int instance_starlog_backend(const int backend_type, const char *output_filepath, const char *input_filepath);
+int instance_starlog_backend(const enum STARLOG_BACKEND backend_type, const char *filepath, const char *socket_path);
 
 /**
- * Logs the given ``message``. Internally this method uses ``vsnprintf`` for formatting
- * so it is fully compliant with string formatting flags and options.
+ * Logs the given ``message`` to all instanced backends. Internally this method uses
+ * ``vsnprintf`` for formatting so it is fully compliant with string formatting flags
+ * and options.
  *
  * @param message The message to log
- * @return void - Will silently fail on error
+ * @return void - On error this method will silently fail
  */
 void log_message(const char *message, ...);
-
-/**
- * Logs the given ``message``. Internally this method uses ``vsnprintf`` for formatting
- * so it is fully compliant with string formatting flags and options.
- *
- * @param message The message to log
- * @return void - Will silently fail on error
- */
-void log_warning(const char *message, ...);
-
-/**
- * Logs the given ``message``. Internally this method uses ``vsnprintf`` for formatting
- * so it is fully compliant with string formatting flags and options.
- *
- * @param message The message to log
- * @return void - Will silently fail on error
- */
-void log_error(const char *message, ...);

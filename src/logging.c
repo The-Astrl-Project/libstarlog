@@ -29,7 +29,7 @@
 // --------------------------------
 // libStarlog || src/logging.c <-> include/logging.h
 //
-// Provides the logging utility for libStarlog.
+// A feature rich logging utility.
 //
 // @author @MaxineToTheStars <https://github.com/MaxineToTheStars>
 // ----------------------------------------------------------------
@@ -39,64 +39,72 @@
 // Enum Definitions
 
 // Type Definitions
+/* Internal implementation of a starlog backend as a type struct */
+typedef struct _starlog_backend_info_t
+{
+    int file_descriptor;
+    char filepath[256];
+    char socket_path[256];
+    enum STARLOG_BACKEND backend_type;
+};
 
 // Variable Definitions
-char backend_file_metadata[1];
-int backend_file_file_descriptor = -1;
+/* Internal implementation used to hold the amount of allocated backends */
+struct _starlog_backend_info_t _allocated_backends[3];
 
 // Main
 
 // Methods
-int instance_starlog_backend(const int backend_type, const char *output_filepath, const char *input_filepath)
+int instance_starlog_backend(const enum STARLOG_BACKEND backend_type, const char *filepath, const char *socket_path)
 {
-    // Duplicate backend check
-    if ((backend_file_file_descriptor > 0))
-    {
-        // Jump to failure
-        goto failure;
-    }
-
-    // Match the backend type
+    // Match the specified backend type
     switch (backend_type)
     {
-    case LSL_BACKEND_FILE:
-        // Sanity check
-        if ((output_filepath == NULL))
+    case STARLOG_BACKEND_FILE:
+        // Check for valid inputs and non-duplicate backend instance
+        if (filepath == NULL || _allocated_backends[0].filepath != NULL)
+        {
+            // Jump to failure
+            goto failure;
+        }
+
+        // Declare a new backend into type
+        struct _starlog_backend_info_t backend_file_info;
+
+        // Attempt to create a new log file with RWX permission at given filepath
+        int fd = open(filepath, O_CREAT | O_NONBLOCK | O_RDWR, S_IRWXU);
+
+        // Validate log file creation
+        if (fd < 0)
         {
             // Jump to failure
             goto failure;
         }
 
         // Store backend info
-        backend_file_metadata[0] = *output_filepath;
+        backend_file_info.file_descriptor = fd;
+        strcpy(backend_file_info.filepath, filepath);
+        strcpy(backend_file_info.socket_path, "");
+        backend_file_info.backend_type = STARLOG_BACKEND_FILE;
 
-        // Create a new file at filepath with RDWR flags
-        backend_file_file_descriptor = open(output_filepath, O_CREAT | O_NONBLOCK | O_RDWR, S_IRWXU);
-
-        // Validate creation
-        if (backend_file_file_descriptor < 0)
-        {
-            // Jump to failure
-            goto failure;
-        }
+        // Save to allocation array
+        _allocated_backends[0] = backend_file_info;
 
         // Jump to success
         goto success;
 
-    case LSL_BACKEND_SOCKET:
+    case STARLOG_BACKEND_SOCKET:
         // Jump to success
         goto success;
 
-    case LSL_BACKEND_CONSOLE:
+    case STARLOG_BACKEND_CONSOLE:
         // Jump to success
         goto success;
 
     default:
-        break;
-    }
-
-    // Jump to failure
-    goto failure;
+        // Jump to failure
+        goto failure;
+    };
 
 success:
     // Return EXIT_SUCCESS
@@ -105,34 +113,10 @@ success:
 failure:
     // Return EXIT_FAILURE
     return EXIT_FAILURE;
-}
+};
 
 void log_message(const char *message, ...)
 {
-    // Temporary function scope variables
-    va_list args_ptr;
-
-    // Initialize the format list
-    va_start(args_ptr, message);
-
-    // Calculate the string length
-    unsigned int string_length = vsnprintf(NULL, 0, message, args_ptr);
-
-    // End the format list
-    va_end(args_ptr);
-
-    // Stack allocate a new buffer
-    char string_buffer[string_length];
-
-    // Re-initialize the format list
-    va_start(args_ptr, message);
-
-    // Format the string
-    vsnprintf(string_buffer, string_length, message, args_ptr);
-
-    // End the argument list
-    va_end(args_ptr);
-
-    // Debug
-    printf(string_buffer);
-}
+    // TODO: Implement
+    return;
+};

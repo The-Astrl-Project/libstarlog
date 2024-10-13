@@ -26,7 +26,7 @@
 // --------------------------------
 // libStarlog || tests/dev_test.c <-> tests/dev_test.h
 //
-// Crazy and wacky development testing. DO NOY USE AS AN ACTUAL
+// Crazy and wacky development testing. DO NOT USE AS AN ACTUAL
 // TEST SUITE!
 //
 // @author @MaxineToTheStars <https://github.com/MaxineToTheStars>
@@ -43,20 +43,8 @@
 // Main
 int main()
 {
-    // Instance a backend
-    int didInit = instance_starlog_backend(LSL_BACKEND_FILE, "/home/maxine/testing.lsl", NULL);
-
-    if (didInit == EXIT_FAILURE)
-    {
-        // Log
-        printf("Failed to initialize logging backend!\n");
-
-        // Exit
-        return -1;
-    }
-
-    // Log a message
-    log_message("floats: %4.2f %+.0e %E \n", 3.1416, 3.1416, 3.1416);
+    // TODO: Implement
+    return;
 }
 
 // Methods
