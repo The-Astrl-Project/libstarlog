@@ -43,8 +43,14 @@
 // Main
 int main()
 {
-    // TODO: Implement
-    return;
+    // Instance a new backend
+    starlog_instance_backend(STARLOG_BACKEND_FILE, "~/testing.txt", NULL);
+
+    // Log
+    starlog_log_message("The mathematical constant pi, representing the ratio of a circle's circumference to its diameter, is approximately %.2f", 3.14);
+
+    // Return
+    return 0;
 }
 
 // Methods

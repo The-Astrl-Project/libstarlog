@@ -37,10 +37,13 @@
 /* Available logging backends supported by libStarlog */
 typedef enum STARLOG_BACKEND
 {
-    STARLOG_BACKEND_FILE = 1,
-    STARLOG_BACKEND_SOCKET = 2,
-    STARLOG_BACKEND_CONSOLE = 3,
-};
+    /* Write log messages to a file */
+    STARLOG_BACKEND_FILE = 0,
+    /* Write log messages to a UNIX Socket that then writes the log message to a file */
+    STARLOG_BACKEND_SOCKET = 1,
+    /* Write log messages to the console */
+    STARLOG_BACKEND_CONSOLE = 2,
+} STARLOG_BACKEND;
 
 // Variable Definitions
 
@@ -52,11 +55,11 @@ typedef enum STARLOG_BACKEND
  * backends of the same type results in ``EXIT_FAILURE``.
  *
  * @param backend_type The backend type to instance
- * @param filepath The filepath of the output file
- * @param socket_path The filepath of the socket
+ * @param file_path The file path of the output file
+ * @param socket_path The file path of the socket
  * @return ``EXIT_SUCCESS`` or ``EXIT_FAILURE``
  */
-int instance_starlog_backend(const enum STARLOG_BACKEND backend_type, const char *filepath, const char *socket_path);
+int starlog_instance_backend(const enum STARLOG_BACKEND backend_type, const char *file_path, const char *socket_path);
 
 /**
  * Logs the given ``message`` to all instanced backends. Internally this method uses
@@ -66,4 +69,4 @@ int instance_starlog_backend(const enum STARLOG_BACKEND backend_type, const char
  * @param message The message to log
  * @return void - On error this method will silently fail
  */
-void log_message(const char *message, ...);
+void starlog_log_message(const char *message, ...);
