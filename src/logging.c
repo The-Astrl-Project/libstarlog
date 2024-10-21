@@ -24,6 +24,7 @@
 // ----------------------------------------------------------------
 
 // Macro Definitions
+#define CONFIG_STARLOG_MAX_BACKENDS 32
 
 // File Docstring
 // --------------------------------
@@ -42,41 +43,37 @@
 /* Internal implementation of a starlog backend as a type struct */
 typedef struct _starlog_backend_info_t
 {
-    /* Backend file descriptor */
+    /* The backend's file descriptor */
     int file_descriptor;
-    /* Backend file path */
+    /* The backend's file path */
     char file_path[256];
-    /* Backend socket path */
+    /* The backend's socket path */
     char socket_path[256];
-    /* Backend type */
+    /* The backend type */
     enum STARLOG_BACKEND backend_type;
 } _starlog_backend_info_t;
 
-/* Internal implementation that allows for quick lookup/storage of a particular backend */
-typedef enum _starlog_backend_index_t
-{
-    /* File based backend */
-    _starlog_backend_index_file = 0,
-    /* UNIX Socket based backend */
-    _starlog_backend_index_socket = 1,
-    /* Console based backend */
-    _starlog_backend_index_console = 2,
-} _starlog_backend_index_t;
-
 // Variable Definitions
 /* Internal implementation used to hold the amount of allocated backends */
-struct _starlog_backend_info_t _starlog_allocated_backends[3];
+struct _starlog_backend_info_t _starlog_allocated_backends[CONFIG_STARLOG_MAX_BACKENDS];
 
 // Main
 
 // Method Definitions
 /**
+ * Internal helper method. Checks if the ``_starlog_allocated_backends`` array is full.
+ * @return A ``boolean`` like value
+ * @note This method is O(n) with ``n`` being the value of ``CONFIG_STARLOG_MAX_BACKENDS``
+ */
+int _util_is_backend_array_full();
+
+/**
  * Internal helper method. Checks if a given ``backend_index`` is instanced.
  *
- * @param backend_index Starlog backend index
- * @return ``boolean`` like value
+ * @param backend_index A valid ``_starlog_allocated_backends`` array index
+ * @return ``0`` if the index is available, ``1`` if allocated, and ``-1`` if out of bounds
  */
-int _util_is_backend_instanced(const enum _starlog_backend_index_t backend_index);
+int _util_is_backend_instanced(const unsigned int backend_index);
 
 /**
  * Internal helper method. Writes the given data to the specified ``backend_struct``.
@@ -86,22 +83,46 @@ int _util_is_backend_instanced(const enum _starlog_backend_index_t backend_index
  * @param socket_path The backend's socket path
  * @param backend_type The backend's backend type
  * @param backend_struct The backend struct to write into
- * @return ``backend_struct``
+ * @return A populated ``backend_struct``
  */
 struct _starlog_backend_info_t _util_write_starlog_backend_info(const int file_descriptor, const char *file_path, const char *socket_path, const enum STARLOG_BACKEND backend_type, struct _starlog_backend_info_t backend_struct);
 
 /**
- * Internal helper method. Appends the given ``backend_struct`` at the given ``backend_index``.
+ * Internal helper method. Appends the given ``backend_struct``.
  *
- * @param backend_index Starlog backend index
- * @param backend_struct Starlog backend struct
+ * @param backend_struct A valid ``_starlog_backend_info_t`` struct
  * @return void
+ * @note This method is O(n) with ``n`` being the value of ``CONFIG_STARLOG_MAX_BACKENDS``
  */
-void _util_append_starlog_backend(const enum _starlog_backend_index_t backend_index, const struct _starlog_backend_info_t backend_struct);
+void _util_append_starlog_backend(const struct _starlog_backend_info_t backend_struct);
 
 // Methods
-int _util_is_backend_instanced(const enum _starlog_backend_index_t backend_index)
+int _util_is_backend_array_full()
 {
+    // Iterate through the entire backend array
+    for (unsigned int backend_index = 0; backend_index < CONFIG_STARLOG_MAX_BACKENDS; backend_index++)
+    {
+        // Check if the given backend_index is available
+        if (_util_is_backend_instanced(backend_index) == 0)
+        {
+            // Array is not yet full
+            return 0;
+        }
+    }
+
+    // Array is full
+    return 1;
+}
+
+int _util_is_backend_instanced(const unsigned int backend_index)
+{
+    // Check if the index is within bounds
+    if (backend_index > CONFIG_STARLOG_MAX_BACKENDS)
+    {
+        // Return OOB
+        return -1;
+    }
+
     // Sick one-liner girl, hopefully it doesn't become an issue :P
     return strlen(_starlog_allocated_backends[backend_index].file_path) == 0 ? 0 : 1;
 }
@@ -112,11 +133,8 @@ int starlog_instance_backend(const enum STARLOG_BACKEND backend_type, const char
     switch (backend_type)
     {
     case STARLOG_BACKEND_FILE:
-        // Switch-case scope variables
-        const int backend_index = _starlog_backend_index_file;
-
-        // Check for valid inputs and non-duplicate backend instance
-        if (file_path == NULL || _util_is_backend_instanced(backend_index) == 0)
+        // Check for invalid inputs and if the backend is full
+        if (file_path == NULL || _util_is_backend_array_full() == 1)
         {
             // Jump to failure
             goto failure;
@@ -136,7 +154,7 @@ int starlog_instance_backend(const enum STARLOG_BACKEND backend_type, const char
         }
 
         // Store relevant backend info and save to backend array
-        _util_append_starlog_backend(backend_index, _util_write_starlog_backend_info(fd, file_path, NULL, STARLOG_BACKEND_FILE, backend_file_info));
+        _util_append_starlog_backend(_util_write_starlog_backend_info(fd, file_path, NULL, STARLOG_BACKEND_FILE, backend_file_info));
 
         // Jump to success
         goto success;
@@ -175,10 +193,21 @@ struct _starlog_backend_info_t _util_write_starlog_backend_info(const int file_d
     return backend_struct;
 }
 
-void _util_append_starlog_backend(const enum _starlog_backend_index_t backend_index, const struct _starlog_backend_info_t backend_struct)
+void _util_append_starlog_backend(const struct _starlog_backend_info_t backend_struct)
 {
-    // Append to the allocated backends array
-    _starlog_allocated_backends[backend_index] = backend_struct;
+    // Iterate through the entire backend array
+    for (unsigned int backend_index = 0; backend_index < CONFIG_STARLOG_MAX_BACKENDS; backend_index++)
+    {
+        // Check if the given index is available
+        if (_util_is_backend_instanced(backend_index) == 0)
+        {
+            // Append to the allocated backends array
+            _starlog_allocated_backends[backend_index] = backend_struct;
+
+            // Break
+            break;
+        }
+    }
 
     // Return
     return;
