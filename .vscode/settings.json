@@ -1,0 +1,5 @@
+{
+  "cSpell.words": ["Astrl", "Globber", "indev", "libstarlog", "Starlog"],
+  "cSpell.enableFiletypes": ["editorconfig", "meson", "shellscript"],
+  "mesonbuild.configureOnOpen": false
+}
