@@ -22,8 +22,11 @@ project(
     license: 'GPLv3',
     license_files: ['LICENSE'],
     meson_version: '>= 1.5.0',
-    version: '0-1.0-dev'
+    version: '0.1.0-dev'
 )
+
+# Project variables
+PROJECT_VERSION = '0.1.0-dev'
 
 # Run the globber.sh script to collect all source and header files
 # NOTE: This is not recommended
@@ -34,8 +37,7 @@ g_source_files = g_source.stdout().strip().replace('./', '').split('\n')
 g_include_files = g_include.stdout().strip().replace('./', '').split('\n')
 
 # Declare dependencies
-c_lang = meson.get_compiler('c', native: false)
-libvoid = c_lang.find_library('astrl/libvoid/libvoid', required: true)
+libVoid = dependency('libVoid', method: 'pkg-config', required: true, version: '>=0.1.0-dev')
 
 # Unit test declaration
 test(
@@ -43,7 +45,7 @@ test(
     executable(
         'libstarlog_unit_test',
         'tests/tests.c',
-        dependencies: [libvoid],
+        dependencies: [libVoid],
         include_directories: [include_directories('include'), 'tests'],
         install: false,
         sources: g_source_files,
@@ -51,18 +53,30 @@ test(
 )
 
 # Library files declaration
-library(
+lsl = library(
     'starlog',
     g_source_files,
-    dependencies: [libvoid],
+    dependencies: [libVoid],
     install: true,
     install_dir: 'lib/astrl/libstarlog',
 )
 
 # Library headers declaration
-install_headers(
+lslh = install_headers(
     g_include_files,
     follow_symlinks: true,
     install_dir: 'include/astrl/libstarlog',
     preserve_path: false
+)
+
+# Generate pkg-config
+pkg = import('pkgconfig')
+pkg.generate(
+    lsl,
+    description: 'A simple to use logging utility - Provided by Astrl',
+    install_dir: '/usr/lib/pkgconfig',
+    name: 'libStarlog',
+    requires: [libVoid],
+    url: 'https://github.com/The-Astrl-Project/libstarlog',
+    version: PROJECT_VERSION,
 )
