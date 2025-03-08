@@ -17,7 +17,7 @@ project(
         'errorlogs': 'true',
         'optimization': '0',
         'stdsplit': 'true',
-        'c_std': 'c99'
+        'c_std': 'gnu99'
     },
     license: 'GPLv3',
     license_files: ['LICENSE'],
@@ -36,16 +36,12 @@ g_include = run_command('bash', './scripts/globber.sh', '-i', capture: true, che
 g_source_files = g_source.stdout().strip().replace('./', '').split('\n')
 g_include_files = g_include.stdout().strip().replace('./', '').split('\n')
 
-# Declare dependencies
-libVoid = dependency('libVoid', method: 'pkg-config', required: true, version: '>=0.1.0-dev')
-
 # Unit test declaration
 test(
     'libStarlog - Unit Test',
     executable(
         'libstarlog_unit_test',
         'tests/tests.c',
-        dependencies: [libVoid],
         include_directories: [include_directories('include'), 'tests'],
         install: false,
         sources: g_source_files,
@@ -56,7 +52,6 @@ test(
 lsl = library(
     'starlog',
     g_source_files,
-    dependencies: [libVoid],
     install: true,
     install_dir: 'lib/astrl/libstarlog',
 )
@@ -75,8 +70,7 @@ pkg.generate(
     lsl,
     description: 'A simple to use logging utility - Provided by Astrl',
     install_dir: '/usr/lib/pkgconfig',
-    name: 'libStarlog',
-    requires: [libVoid],
+    name: 'libstarlog',
     url: 'https://github.com/The-Astrl-Project/libstarlog',
     version: PROJECT_VERSION,
 )
