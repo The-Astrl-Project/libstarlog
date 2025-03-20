@@ -60,7 +60,7 @@ int main()
     // Free
     lsl_free_backend(backend_file);
     lsl_free_backend(backend_socket_server);
-    lsl_free_backend(backend_socket_server);
+    lsl_free_backend(backend_socket_client);
     lsl_free_backend(backend_standard_out);
 
     // Exit

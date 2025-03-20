@@ -618,7 +618,7 @@ void *_lsl_logging_backend_server(void *backend)
         receiving_msg.msg_iov = NULL;
         receiving_msg.msg_iovlen = 0;
 
-        // Peak at the data and get the message length.
+        // Peek at the data and get the message length.
         size_t message_length = recvmsg(backend_t->socket_descriptor, &receiving_msg, MSG_PEEK | MSG_TRUNC);
 
         // Allocate a buffer on the stack
@@ -628,11 +628,11 @@ void *_lsl_logging_backend_server(void *backend)
         memset(&receiving_iov, '\0', sizeof(receiving_iov));
         memset(&receiving_msg, '\0', sizeof(receiving_msg));
 
-        // Prepare the iovec
+        // Prepare the IOVec
         receiving_iov.iov_base = buffer;
         receiving_iov.iov_len = sizeof(buffer);
 
-        // Prepare the message struct
+        // Prepare the MsgHeader
         receiving_msg.msg_name = NULL;
         receiving_msg.msg_namelen = 0;
         receiving_msg.msg_iov = &receiving_iov;
